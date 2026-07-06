@@ -46,9 +46,10 @@ it was possible to lift it out into this standalone repo essentially as-is.
 - `sim_editor_2026.pug` -> [`index.html`](./index.html): dropped the CMS
   layout (`extends ../includes/layout`, navbar/breadcrumb/footer), kept the
   editor grid/controls markup, and added explicit `<script>`/`<link>` tags
-  (via CDN) for Angular 1.x, Angular UI Bootstrap, Bootstrap 3 CSS/JS,
-  jQuery, SweetAlert2, html2canvas, and OpenCV.js (needed by the Room 4
-  custom-shape image-processing feature).
+  (via CDN) for Angular 1.x, Angular UI Bootstrap, Bootstrap 4 CSS/JS
+  (matching the version the markup's `input-group-prepend`/`input-group-text`/
+  `mb-3`/`btn-outline-*` classes require), jQuery, SweetAlert2, html2canvas,
+  and OpenCV.js (needed by the Room 4 custom-shape image-processing feature).
 - `sim_editor_modal.2026.html` and `custom_room_4_modal.2026.html` (the two
   Angular UI Bootstrap modal templates the controller opens for per-tile
   editing and the Room 4 custom-shape drawing tool) -> `templates/`, with the
