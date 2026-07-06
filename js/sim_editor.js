@@ -2058,35 +2058,27 @@ app.controller('SimEditorController', ['$scope', '$uibModal', '$log', '$http', f
         let allFakes = ""
         let allHazards = ""
         // tag entry level floor victims
-        // Entry Level export: floor-mounted victim markers, collected in this
-        // string and emitted under DEF FLOORVICTIMGROUP instead of the
-        // wall-mounted HUMANGROUP/TARGETGROUP/FAKES groups.
+        // Entry Level export: FloorVictim is now a purely logical/scoring
+        // marker with no geometry of its own (see FloorVictim.proto) - the
+        // supervisor's position+message-based detection only reads its
+        // translation.x/z, type and scoreWorth (Y is ignored entirely by
+        // Victim.py's check_position(), and there's nothing to render, so
+        // it's just set to 0). The VISIBLE colour patch the robot's sensor
+        // actually sees is rendered separately, inset directly on the same
+        // tile's own floor surface via worldTile's victimType field (set
+        // alongside tileColor etc. in the tile_string template below) -
+        // this keeps the visible marker at the exact same depth as the
+        // floor itself, which avoids the depth-dependent detection
+        // failures a separate raised/recessed object was prone to.
         let allFloorVictims = ""
         let floorVictimId = 0
-        // worldTile.proto treats 0.3m (300mm) as the tile side at
-        // tileScale=1.0, which matches the real RCJA physical maze tile size
-        // exactly. RCJA's physical floor-victim markers are 50mm squares on
-        // those 300mm tiles (a 50/300 = 1/6 ratio) -- so rather than an
-        // arbitrary percentage, scale that same real-world 50mm constant by
-        // whatever tileScale this map uses, preserving the RCJA proportions
-        // at any sim scale (e.g. 20mm markers on this file's 120mm tiles).
-        let floorVictimSize = 0.05 * tileScale[0]
-        // worldTile.proto centers the floor box at y=-0.085*scaleY with half
-        // thickness 0.01*scaleY (tileThickness=0.02), so its rendered TOP
-        // surface sits at y=-0.075*scaleY. Center the marker there (rather
-        // than resting its bottom face on top of the floor) so half its
-        // thickness is recessed into the floor volume and half pokes up -
-        // halves the visible protrusion vs. sitting flush on top, without
-        // dipping low enough to be fully hidden behind the opaque floor box.
-        let floorVictimY = -0.075 * tileScale[1]
         function floorVictimPart({x, z, id, type, score}) {
             return `
             FloorVictim {
-                translation ${x} ${floorVictimY} ${z}
+                translation ${x} 0 ${z}
                 name "FloorVictim${id}"
                 type "${type}"
                 scoreWorth ${score}
-                size ${floorVictimSize}
             }
             `;
         }
@@ -2169,10 +2161,31 @@ app.controller('SimEditorController', ['$scope', '$uibModal', '$log', '$http', f
             room ${tile.room_number}
           }
         `;
+                    // NOTE: halfTile.proto does not have victimType/
+                    // victimTexture fields (only worldTile.proto does), so
+                    // an Entry Level floor victim on a half-tile would only
+                    // get the invisible scoring marker, not the visible
+                    // inset colour. Not adding it here since the Entry
+                    // Level UI (index.html) never exposes wall-side victim
+                    // assignment together with half-tile configuration in
+                    // practice - flagging in case that changes.
                     tile_string = tile_string.replace(/true/g, "TRUE")
                     tile_string = tile_string.replace(/false/g, "FALSE")
                 }
                 else {
+                    // Entry Level: the tile's OWN floor renders the victim
+                    // colour as an inset texture (see worldTile.proto's
+                    // victimType/victimTexture fields and MainSupervisor's
+                    // load_floor_victim_textures()) at the exact same depth
+                    // as the floor itself, rather than a separate object
+                    // that could sit at a different depth than a robot's
+                    // colour sensor expects. This is set here (not just via
+                    // the separate invisible FloorVictim scoring marker
+                    // below) precisely so the visible marker and the floor
+                    // it's inset into are the same Shape/depth.
+                    let victimType = (isEntryLevel && tile.wall_token_type >= HUMAN_H && tile.wall_token_type <= HUMAN_S)
+                        ? humanTypesVisual[tile.wall_token_type - 1]
+                        : ""
                     tile_string = `
         DEF ${tileName} worldTile {
             xPos ${x}
@@ -2198,6 +2211,7 @@ app.controller('SimEditorController', ['$scope', '$uibModal', '$log', '$http', f
             zScale ${tileScale[2]}
             tileColor ${tile.floor_color}
             room ${tile.room_number}
+            victimType "${victimType}"
           }
         `
                     tile_string = tile_string.replace(/true/g, "TRUE")
