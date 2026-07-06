@@ -2068,10 +2068,17 @@ app.controller('SimEditorController', ['$scope', '$uibModal', '$log', '$http', f
         // uses to place walls/floors/tile content (see startX/startZ/humanPos
         // above and worldTile's xScale/zScale below) -- not invented here.
         let tileSide = 0.3 * tileScale[0]
+        // worldTile.proto centers the floor box at y=-0.085*scaleY with half
+        // thickness 0.01*scaleY (tileThickness=0.02), so its rendered TOP
+        // surface sits at y=-0.075*scaleY, not y=0. y=0 only reads as "floor
+        // level" for a wall-mounted Victim sign, which has a few cm of
+        // clearance either way - a flat floor marker at y=0 visibly floats
+        // above the real floor mesh. Snap to the actual floor top instead.
+        let floorVictimY = -0.075 * tileScale[1]
         function floorVictimPart({x, z, id, type, score}) {
             return `
             FloorVictim {
-                translation ${x} 0 ${z}
+                translation ${x} ${floorVictimY} ${z}
                 name "FloorVictim${id}"
                 type "${type}"
                 scoreWorth ${score}
