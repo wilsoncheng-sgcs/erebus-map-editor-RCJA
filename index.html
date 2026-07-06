@@ -26,6 +26,40 @@
 </head>
 <body ng-controller="SimEditorController">
 
+  <div id="buildInfoBadge" style="position:fixed; top:4px; right:8px; font:11px monospace; color:#888; background:rgba(255,255,255,0.9); padding:2px 8px; border-radius:4px; z-index:9999; border:1px solid #ddd;"></div>
+  <script>
+  (function() {
+    // BUILD_TIME is bumped by hand to the current time on every commit that
+    // touches this repo's served files. On load, compare it against the
+    // latest commit on GitHub's main branch - if GitHub has a materially
+    // newer commit than this page's baked-in stamp, the browser is serving
+    // a stale cached copy (GitHub Pages CDN lag, browser cache, etc.), not
+    // an actual deploy failure. Lets you tell those two apart at a glance
+    // instead of guessing.
+    var BUILD_TIME = "2026-07-06T05:26:55Z";
+    var badge = document.getElementById('buildInfoBadge');
+    badge.textContent = 'build: ' + BUILD_TIME;
+    fetch('https://api.github.com/repos/wilsoncheng-sgcs/erebus-map-editor-RCJA/commits/main')
+      .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function(data) {
+        var latest = new Date(data.commit.committer.date).getTime();
+        var thisBuild = new Date(BUILD_TIME).getTime();
+        if (latest - thisBuild > 2 * 60 * 1000) {
+          badge.textContent += ' — STALE, hard-refresh (GitHub has a newer commit)';
+          badge.style.color = '#c00';
+          badge.style.borderColor = '#c00';
+        } else {
+          badge.textContent += ' — up to date';
+          badge.style.color = '#2a7';
+        }
+      })
+      .catch(function() {
+        // Offline/rate-limited: not fatal, just skip the freshness check
+        badge.textContent += ' (freshness check unavailable)';
+      });
+  })();
+  </script>
+
   <h1 class="editor-title">Rescue Simulation World Editor</h1>
   <p>Click on the wall to create a maze. Click on the floor of the maze to set items such as victims, checkpoints, swamps and others.</p>
 
