@@ -2063,17 +2063,21 @@ app.controller('SimEditorController', ['$scope', '$uibModal', '$log', '$http', f
         // wall-mounted HUMANGROUP/TARGETGROUP/FAKES groups.
         let allFloorVictims = ""
         let floorVictimId = 0
-        // Tile side length in world units (real-world footprint of one tile).
-        // Reuses the exact same scale factor the rest of createWorld() already
-        // uses to place walls/floors/tile content (see startX/startZ/humanPos
-        // above and worldTile's xScale/zScale below) -- not invented here.
-        let tileSide = 0.3 * tileScale[0]
+        // worldTile.proto treats 0.3m (300mm) as the tile side at
+        // tileScale=1.0, which matches the real RCJA physical maze tile size
+        // exactly. RCJA's physical floor-victim markers are 50mm squares on
+        // those 300mm tiles (a 50/300 = 1/6 ratio) -- so rather than an
+        // arbitrary percentage, scale that same real-world 50mm constant by
+        // whatever tileScale this map uses, preserving the RCJA proportions
+        // at any sim scale (e.g. 20mm markers on this file's 120mm tiles).
+        let floorVictimSize = 0.05 * tileScale[0]
         // worldTile.proto centers the floor box at y=-0.085*scaleY with half
         // thickness 0.01*scaleY (tileThickness=0.02), so its rendered TOP
-        // surface sits at y=-0.075*scaleY, not y=0. y=0 only reads as "floor
-        // level" for a wall-mounted Victim sign, which has a few cm of
-        // clearance either way - a flat floor marker at y=0 visibly floats
-        // above the real floor mesh. Snap to the actual floor top instead.
+        // surface sits at y=-0.075*scaleY. Center the marker there (rather
+        // than resting its bottom face on top of the floor) so half its
+        // thickness is recessed into the floor volume and half pokes up -
+        // halves the visible protrusion vs. sitting flush on top, without
+        // dipping low enough to be fully hidden behind the opaque floor box.
         let floorVictimY = -0.075 * tileScale[1]
         function floorVictimPart({x, z, id, type, score}) {
             return `
@@ -2082,7 +2086,7 @@ app.controller('SimEditorController', ['$scope', '$uibModal', '$log', '$http', f
                 name "FloorVictim${id}"
                 type "${type}"
                 scoreWorth ${score}
-                size ${tileSide * 0.10}
+                size ${floorVictimSize}
             }
             `;
         }
