@@ -8,6 +8,11 @@ targets the `entry-level-floor-victims` branch, which adds the
 
 **Live app:** https://wilsoncheng-sgcs.github.io/erebus-map-editor-RCJA/
 
+**Design rationale:** the plan behind this repo and the companion Erebus
+`entry-level-floor-victims` branch is documented in
+[`docs/entry-level-plan.md`](https://github.com/wilsoncheng-sgcs/erebus/blob/entry-level-floor-victims/docs/entry-level-plan.md)
+in that branch.
+
 ## Origin and attribution
 
 This project is extracted from the `sim_editor` module of
