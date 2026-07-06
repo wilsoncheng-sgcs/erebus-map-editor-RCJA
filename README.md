@@ -2,7 +2,11 @@
 
 A standalone, static web app for building RoboCup Junior Rescue Simulation
 maps and exporting them as Webots `.wbt` world files for the
-[Erebus simulator](https://github.com/) rescue-line/rescue-maze competitions.
+[Erebus simulator](https://github.com/wilsoncheng-sgcs/erebus) (this repo
+targets the `entry-level-floor-victims` branch, which adds the
+`FloorVictim.proto` the Entry Level tier below depends on).
+
+**Live app:** https://wilsoncheng-sgcs.github.io/erebus-map-editor-RCJA/
 
 ## Origin and attribution
 
@@ -61,6 +65,24 @@ This is a fully static app — no build step, no server-side code.
   python3 -m http.server 8000
   ```
   then visit `http://localhost:8000/index.html`.
+- Or use the hosted copy above — no setup at all.
+
+### Deploying to GitHub Pages
+
+This repo is Pages-ready as-is: all local asset references (`css/`, `js/`,
+`images/`, `templates/`) are relative paths, which is what's needed since a
+GitHub Pages project site is served from a subpath
+(`https://<user>.github.io/<repo>/`), not the domain root. To (re)deploy:
+
+1. In the repo's GitHub **Settings → Pages**, set "Build and deployment"
+   source to "Deploy from a branch", branch `main`, folder `/ (root)`.
+2. A `.nojekyll` file is committed at the repo root — required because
+   GitHub Pages runs Jekyll by default, which ignores directories/files
+   starting with `_` and could otherwise interfere with the plain static
+   files here.
+3. Pages serves whatever is on `main` — no build step, no GitHub Actions
+   workflow needed. Push to `main` and the live site updates automatically
+   (usually within a minute or two).
 
 ## Ruleset tier selector
 
@@ -147,13 +169,6 @@ proto defaults since floor markers have no meaningful orientation.
 
 ## Known gaps
 
-- **Missing image assets.** The tile grid and modal templates reference a
-  number of `images/...` icons (tile markers, victim-type icons, curved-wall
-  diagrams, etc.) that were not fetched as part of this extraction — only
-  the JS/HTML/CSS logic was pulled from the source repo, not its `public/`
-  image assets. The `images/` directory exists but is empty; missing icons
-  will simply not render (broken image icons) until assets are added. This
-  does not affect the underlying map data model or `.wbt` export logic.
 - **Floating-wall advisory check is a heuristic**, not a full topology
   validator (see above) — it may miss some invalid wall configurations and,
   in principle, could flag a wall segment that is actually fine under some
